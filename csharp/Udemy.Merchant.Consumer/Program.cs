@@ -6,7 +6,13 @@ namespace Udemy.Merchant.Consumer
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            ConsumerFactory.StartConsumeOrder();
+            ConsumerFactory.StartRespondingProducts();
+            ConsumerFactory.StartConsumingSupplierNotifications();
+
+            System.Console.WriteLine("press any key to quit");
+
+            Console.ReadKey();
         }
     }
 }
