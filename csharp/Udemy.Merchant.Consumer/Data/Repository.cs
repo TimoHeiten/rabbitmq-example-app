@@ -44,6 +44,19 @@ namespace Udemy.Merchant.Consumer.Data
 
        internal void InitializeDatabase()
        {
+            string shouldInit = "SELECT COUNT(*) FROM suppliers";
+            var c = Connection();
+            c.Open();
+            var create = c.CreateCommand();
+            create.CommandText = shouldInit;
+            long result = (long)create.ExecuteScalar();
+               c.Close();
+            if (result > 0)
+            {
+                System.Console.WriteLine("database already initialized");
+                return;
+            }
+
            InsertData(insert_customers,
                 new object[]
                 {
