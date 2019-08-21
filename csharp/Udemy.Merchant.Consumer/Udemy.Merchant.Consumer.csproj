@@ -4,9 +4,16 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="EasyNetQ" Version="3.6.0" />
+    <PackageReference Include="EasyNetQ" Version="3.6.0"/>
+    <PackageReference Include="Dapper" Version="1.60.9"/>
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.111"/>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Udemy.Merchant.Bus\Udemy.Merchant.Bus.csproj" />
+    <ProjectReference Include="..\Udemy.Merchant.Bus\Udemy.Merchant.Bus.csproj"/>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="./merchant.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

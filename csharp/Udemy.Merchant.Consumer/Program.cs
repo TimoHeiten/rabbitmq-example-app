@@ -1,4 +1,5 @@
 ﻿using System;
+using Udemy.Merchant.Consumer.Data;
 
 namespace Udemy.Merchant.Consumer
 {
@@ -10,8 +11,16 @@ namespace Udemy.Merchant.Consumer
             ConsumerFactory.StartRespondingProducts();
             ConsumerFactory.StartConsumingSupplierNotifications();
 
-            System.Console.WriteLine("press any key to quit");
+            var repository = new Repository();
+            repository.InitializeDatabase();
+            var products = repository.GetProducts();
+            foreach (var item in products)
+            {
+                System.Console.WriteLine(item.ToString());
+            }
 
+            System.Console.WriteLine("press any key to quit");
+            
             Console.ReadKey();
         }
     }
