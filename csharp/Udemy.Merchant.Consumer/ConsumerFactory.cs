@@ -13,7 +13,6 @@ namespace Udemy.Merchant.Consumer
     {
         public static IBus s_Bus;
 
-        
         static ConsumerFactory()
         {
            s_Bus = Factory.PrepareBus("dotnet_user", "dotnet");
@@ -24,9 +23,10 @@ namespace Udemy.Merchant.Consumer
             s_Bus.SubscribeAsync<PutOrderNotification>("orders", 
             message => 
             {
-                // todo push to database
+                // todo push order to database
+                // todo get Products from database
                 System.Console.WriteLine(message.Order.ToString());
-                PublishNotification(message.Order);
+                // PublishNotification(message.Order);
                 return Task.CompletedTask;
             });
         }
