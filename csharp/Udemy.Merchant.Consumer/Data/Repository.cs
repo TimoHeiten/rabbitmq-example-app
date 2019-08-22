@@ -5,6 +5,7 @@ using Udemy.Merchant.Bus.Model;
 using System.Linq;
 using System;
 using System.Data.SQLite;
+using Udemy.Merchant.Bus.Messages;
 
 namespace Udemy.Merchant.Consumer.Data
 {
@@ -39,6 +40,41 @@ namespace Udemy.Merchant.Consumer.Data
            {
                con.Open();
                return con.Query<Product>(sql).ToList();
+           }
+       }
+
+       public int NextId()
+       {
+          string sql = "SELECT MAX(rowId) FROM orders";
+          using (var c = Connection())
+          {
+              c.Open();
+              return c.Query<int>(sql).Single();
+          }
+       }
+
+       public void InsertOrder(OrderMessage order)
+       {
+           int id = -1;
+           string insert_order = "INSERT INTO orders (Id, CustomerId, SupplierId) VALUES (Null, @CustomerId, @SupplierId)";
+           string insert_many = "INSERT INTO orderedproducts (Id, ProductId, OrderId) VALUES (Null, @ProductId, @OrderId)";
+           using (var c = Connection())
+           {
+                c.Open();
+                c.Execute(insert_order, 
+                new object[]
+                {
+                    new { CustomerId = order.CustomerId, SupplierId = order.SupplierId }
+                });
+
+                id = NextId();
+                IList<OrderedProduct> list = order.ProductIds.Select(x => new OrderedProduct
+                {
+                    OrderId = id,
+                    ProductId = x
+                }).ToList();
+                
+                c.Execute(insert_many, list);
            }
        }
 
