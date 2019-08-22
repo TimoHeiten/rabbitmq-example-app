@@ -2,26 +2,68 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using EasyNetQ;
 using Microsoft.AspNetCore.Mvc;
+using Udemy.Merchant.Bus.Messages;
+using Udemy.Merchant.Bus.Model;
+using Udemy.Merchant.Rest.Model;
 
 namespace Udemy.Merchant.Rest.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/")]
     [ApiController]
     public class ValuesController : ControllerBase
     {
-        // GET api/values
-        [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        private readonly IBus _bus;
+        public ValuesController(IBus bus)
         {
-            return new string[] { "value1", "value2" };
+            _bus = bus;
         }
 
-        // GET api/values/5
-        [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        [HttpGet]
+        [Route("products")]
+        public async Task<ActionResult<IEnumerable<Product>>> Get()
         {
-            return "value";
+            var request = new ProductRequest();
+            try
+            {
+                var response = await _bus.RequestAsync<ProductRequest, ProductResponse>(request);
+                return Ok(response.Products);
+            }
+            catch (System.Exception ex)
+            {
+                
+                return BadRequest($"failed to catch response:\n{ex.Message}");
+            }
+            
+        }
+
+
+        [HttpPut("order")]
+        public async Task<ActionResult> PutOrder(OrderInput order)
+        {
+            try
+            {
+                order.CustomerId = int.Parse(HttpContext.Request.Headers["CustomerId"]);
+                await _bus.PublishAsync<PutOrderNotification>(
+                    new PutOrderNotification
+                    {
+                        Order = new OrderMessage
+                        {
+                            ProductIds = order.ProductIds,
+                            CustomerId = order.CustomerId,
+                            SupplierId = order.SupplierId
+                        }
+                    }
+                );
+
+                return Ok(order);
+            }
+            catch (System.Exception ex)
+            {
+                
+                return BadRequest($"{ex}");
+            }
         }
 
         // POST api/values

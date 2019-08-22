@@ -1,9 +1,17 @@
+using System.Collections.Generic;
 using Udemy.Merchant.Bus.Model;
 
 namespace Udemy.Merchant.Bus.Messages
 {
     public class PutOrderNotification
     {
-        public Order Order { get; set; }
+        public OrderMessage Order { get; set; }
+    }
+
+    public class OrderMessage
+    {
+        public IEnumerable<int> ProductIds { get; set; }
+        public int CustomerId { get; set; }
+        public int SupplierId { get; set; }
     }
 }
