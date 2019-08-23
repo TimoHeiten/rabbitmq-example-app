@@ -6,12 +6,15 @@ using EasyNetQ;
 using Udemy.Merchant.Bus;
 using Udemy.Merchant.Bus.Messages;
 using Udemy.Merchant.Bus.Model;
+using Udemy.Merchant.Consumer.Data;
+using EasyNetQ.Topology;
 
 namespace Udemy.Merchant.Consumer
 {
     internal static class ConsumerFactory
     {
         public static IBus s_Bus;
+        private static Repository s_repository = new Repository();
 
         static ConsumerFactory()
         {
@@ -21,13 +24,10 @@ namespace Udemy.Merchant.Consumer
         public static void StartConsumeOrder()
         {
             s_Bus.SubscribeAsync<PutOrderNotification>("orders", 
-            message => 
+            async message => 
             {
-                // todo push order to database
-                // todo get Products from database
-                System.Console.WriteLine(message.Order.ToString());
-                // PublishNotification(message.Order);
-                return Task.CompletedTask;
+                s_repository.InsertOrder(message.Order);
+                await PublishNotification(message.Order);
             });
         }
 
@@ -35,20 +35,11 @@ namespace Udemy.Merchant.Consumer
         {
             s_Bus.RespondAsync<ProductRequest, ProductResponse>(request => 
             {
-                // todo extract from database
+                var products = s_repository.GetProducts();
                 var response = new ProductResponse
                 {
-                    Products = Enumerable.Range(1, 4)
-                        .Select(x => new Product
-                        {
-                            Id = x,
-                            ArticleNumber = $"{x}",
-                            Name = $"product_{x}",
-                            Price = x*100,
-                            SupplierId = 10,
-                        }).ToArray()
+                    Products = products.ToArray()
                 };
-
                 return Task.FromResult(response);
             });
 
@@ -59,11 +50,48 @@ namespace Udemy.Merchant.Consumer
             // todo connect with advanced bus to existing queue
         }
 
-        public static void PublishNotification(Order Order)
+        public static async Task PublishNotification(OrderMessage order)
         {
-            // todo publish to customer
-            // todo publish to subscriber
-            // --> external uses (will be simulated)
+            // --> fanout!
+            var products = s_repository.GetProducts();
+            var relevant = order.ProductIds;
+            var numbers = products.Where(y => relevant.Any(n => n == y.Id))
+                                  .Select(x => x.ArticleNumber);
+
+            var notify = new NotifySupplier
+            {
+                CustomerId = order.CustomerId,
+                OrderId = order.Id
+                SupplierId = order.SupplierId,
+                ProductNumbers = numbers.ToArray()
+            };
+            
+            var advanced = s_Bus.Advanced;
+            IExchange ex = advanced.ExchangeDeclare("notifications", "fanout", passive:true);
+            IMessage<NotifySupplier> msg = new PushOrder(notify);
+
+            await advanced.PublishAsync(ex, "", mandatory:true, message:msg);
+        }
+
+        private class PushOrder : IMessage<NotifySupplier>
+        {
+            private NotifySupplier notify;
+
+            public PushOrder(NotifySupplier notify)
+            {
+                this.notify = notify;
+            }
+
+            public NotifySupplier Body => notify;
+
+            public MessageProperties Properties => new MessageProperties();
+
+            public Type MessageType => typeof(NotifySupplier);
+ 
+            public object GetBody()
+            {
+                return notify;
+            }
         }
     }
 }

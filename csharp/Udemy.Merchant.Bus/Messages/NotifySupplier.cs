@@ -9,6 +9,7 @@ namespace Udemy.Merchant.Bus.Messages
     public class NotifySupplier
     {
         public int SupplierId { get; set; }
-        public Order PlacedOrder { get; set; }
+        public string[] ProductNumbers { get; set; }
+        public int CustomerId { get; set; }
     }
 }

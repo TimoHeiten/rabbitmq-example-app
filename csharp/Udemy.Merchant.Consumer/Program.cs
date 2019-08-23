@@ -12,22 +12,7 @@ namespace Udemy.Merchant.Consumer
             ConsumerFactory.StartRespondingProducts();
             ConsumerFactory.StartConsumingSupplierNotifications();
 
-            var repository = new Repository();
-            var products = repository.GetProducts();
-            foreach (var item in products)
-            {
-                System.Console.WriteLine(item.ToString());
-            }
-
-            var order = new Bus.Messages.OrderMessage
-            {
-                CustomerId = 1,
-                SupplierId = 1,
-                ProductIds = products.Select(x => x.Id).ToArray()
-            };
-
-            repository.InsertOrder(order);
-            
+            System.Console.WriteLine("started! - consumes messages from now on!");
 
             System.Console.WriteLine("press any key to quit");
             
