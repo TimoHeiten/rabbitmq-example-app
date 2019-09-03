@@ -61,7 +61,6 @@ namespace Udemy.Merchant.Consumer
             var notify = new NotifySupplier
             {
                 CustomerId = order.CustomerId,
-                OrderId = order.Id
                 SupplierId = order.SupplierId,
                 ProductNumbers = numbers.ToArray()
             };

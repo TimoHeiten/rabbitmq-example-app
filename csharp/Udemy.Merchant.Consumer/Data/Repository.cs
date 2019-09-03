@@ -68,6 +68,7 @@ namespace Udemy.Merchant.Consumer.Data
                 });
 
                 id = NextId();
+
                 IList<OrderedProduct> list = order.ProductIds.Select(x => new OrderedProduct
                 {
                     OrderId = id,
